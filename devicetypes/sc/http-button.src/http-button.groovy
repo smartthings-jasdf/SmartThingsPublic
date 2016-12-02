@@ -29,7 +29,6 @@ metadata {
 		}
 	}
 
-
 	// simulator metadata
 	simulator {
 	}
@@ -79,7 +78,7 @@ def runCmd(String varCommand) {
 
 	def headers = [:] 
 	headers.put("HOST", "$host:$LocalDevicePort")
-	headers.put("Content-Type", "application/x-www-form-urlencoded")
+	//headers.put("Content-Type", "application/x-www-form-urlencoded")
 	if (HTTPAuth) {
 		headers.put("Authorization", userpass)
 	}
