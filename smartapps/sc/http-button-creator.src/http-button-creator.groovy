@@ -14,7 +14,7 @@
  *
  *  Credit: Eric Roberts (baldeagle072) - Virtual switch creator
  *  Credit: tguerena and surge919 - URI Switch
- *  
+ *
  *  Fix addChildDevice problem - https://community.smartthings.com/t/use-addchilddevice-with-manual-ip-entry/4594/23
  */
 definition(
@@ -55,8 +55,8 @@ def initialize() {
     log.debug(deviceId)
     def existing = getChildDevice(deviceId)
     if (!existing) {
-        //def childDevice = addChildDevice("sc", "HTTP Switch", deviceId, null, [label: switchLabel])
-        def childDevice = addChildDevice("sc", "HTTP Button", deviceId, theHub.id, [label: switchLabel])
+        def childDevice = addChildDevice("sc", "HTTP Switch", deviceId, null, [label: switchLabel])
+        //def childDevice = addChildDevice("sc", "HTTP Button", deviceId, theHub.id, [label: switchLabel])
     }
 }
 
