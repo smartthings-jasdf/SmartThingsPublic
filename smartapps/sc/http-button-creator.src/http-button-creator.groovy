@@ -45,7 +45,6 @@ def installed() {
 
 	initialize()
     
-    subscribe(sensorDevice, "contact", contactHandler)
     state.currentState = "sigh"
     
     log.debug "Installed current state; ${state.currentState}"
@@ -70,6 +69,9 @@ def initialize() {
          subscribeToCommand(it, "on", onCommand)
          subscribeToCommand(it, "off", onCommand)
  	 }
+     
+     subscribe(sensorDevice, "contact.open", contactHandler)
+	 subscribe(sensorDevice, "contact.closed", contactHandler)
 }
 
 def uninstalled() {
@@ -86,30 +88,47 @@ def contactHandler(evt) {
    def childDevice =  getChildDevice(app.id)
   
   if("open" == evt.value) {
-    log.debug "Contact is in ${evt.value} state" 
-   	sendEvent(childDevice,[name:"switch", value:"on", data: [type:"manual"]])
+    log.debug "Contact is in ${evt.value} state, ${childDevice.currentTriggerswitch}, and ${childDevice.currentSwitch}" 
+    childDevice.on()
   }
   
   if("closed" == evt.value) {
-    log.debug "Contact is in ${evt.value} state"
-    sendEvent(childDevice,[name:"switch", value:"off", data: [type:"manual"]])
+    log.debug "Contact is in ${evt.value} state, ${childDevice.currentTriggerswitch}, and ${childDevice.currentSwitch}"
+    childDevice.off()
+    
   }
 }
 
 def onCommand(evt) {
 	def currentValue = "${sensorDevice.currentValue('contact').value}"
-    def isclosed = currentValue == 'closed'
-	log.debug "Calling on ${evt.value} ${currentValue} "
     
-    if (evt.data == null) { //real command, not being set by the door itself
-    	def childDevice =  getChildDevice(app.id)
-        log.debug "Current: ${currentValue} ${isclosed}, Val: ${evt.value == 'on'}"
-        def needToToggle = (currentValue == 'closed' && evt.value == 'on') || (currentValue == 'open' && evt.value == 'off')
-        
-        if (needToToggle)
-   			sendHubCommand(runCmd())
-        else 
-            log.debug 'DO NOT NEED TO TOGGLE'
+    def isclosed = currentValue == 'closed'    
+    def childDevice =  getChildDevice(app.id)
+    log.debug "Current: ${currentValue} ${isclosed}, Val: ${evt.value == 'on'}"
+    def needToToggle = (currentValue == 'closed' && evt.value == 'on') || (currentValue == 'open' && evt.value == 'off')
+
+    if (needToToggle) {
+        sendHubCommand(runCmd())
+        log.debug "TOGGLING DOOR"
+        if (evt.value == 'on')
+        	runIn(10,ensureOpen)
+        else
+            runIn(10,ensureClosed)
+    }
+    else 
+        log.debug 'DO NOT NEED TO TOGGLE'
+}
+
+def ensureOpen() {
+	def childDevice =  getChildDevice(app.id)
+    if (sensorDevice.currentContact != 'open') {
+		childDevice.off()
+    }
+}
+def ensureClosed() {
+	def childDevice =  getChildDevice(app.id)
+    if (sensorDevice.currentContact != 'closed') { 
+    	childDevice.on()
     }
 }
 
